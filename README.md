@@ -4,6 +4,12 @@ Keeper job contracts for Indexed Finance. Currently supports jobs for the Market
 
 The purpose of these contracts is to pay keepers who execute jobs required for basic maintenance such as oracle price updates. They are intended for use in conjunction with automated keeper bots which keep track of available jobs and execute them as needed.
 
+## Tests
+
+Run tests: `npm run test`
+
+Generate coverage report: `npm run coverage`
+
 ## KeeperVault
 
 KeeperVault stores the reward tokens which are paid to keepers. It stores a mapping of approved keeper job contracts which are allowed to collect rewards for keepers who execute jobs.
