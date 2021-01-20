@@ -18,12 +18,12 @@ contract KeeperVault is Ownable {
 
   event PaidKeeperRewards(address recipient, uint256 gasUsed, uint256 reward);
 
-  /* ==========  Immutables  ========== */
+/* ==========  Immutables  ========== */
 
   /** @dev Address of the token paid for keeper rewards. */
   address public immutable rewardsToken;
 
-  /* ==========  Storage  ========== */
+/* ==========  Storage  ========== */
 
   /** @dev Amount of `rewardsToken` paid per unit of gas spent in a keeper call. */
   uint256 public rewardsPerGas;
@@ -39,13 +39,13 @@ contract KeeperVault is Ownable {
 
   mapping(address => bool) public isApprovedKeeper;
 
-  /* ==========  Constructor  ========== */
+/* ==========  Constructor  ========== */
 
   constructor(address rewardsToken_) public Ownable() {
     rewardsToken = rewardsToken_;
   }
 
-  /* ==========  Utils  ========== */
+/* ==========  Utils  ========== */
 
   /**
    * @dev Converts unix timestamp to days.
@@ -54,7 +54,7 @@ contract KeeperVault is Ownable {
     return timestamp / (1 days);
   }
 
-  /* ==========  Rewards  ========== */
+/* ==========  Rewards  ========== */
 
   /**
    * @dev Collects rewards for a user who executed a keeper function.
@@ -82,7 +82,7 @@ contract KeeperVault is Ownable {
     emit PaidKeeperRewards(recipient, gasUsed, reward);
   }
 
-  /* ==========  Controls & Configuration  ========== */
+/* ==========  Controls & Configuration  ========== */
 
   /**
    * @dev Withdraw `amount` of the rewards token to the owner.
