@@ -15,9 +15,6 @@ contract MarketCapSqrtControllerJobs is JobsBase {
   /** @dev Minimum delay between category price update calls. */
   uint256 public constant MIN_PRICE_UPDATE_DELAY = 1 days;
 
-  /** @dev Tokens which the contract will reward keepers for updating the price of. */
-  mapping(address => bool) public oracleWhitelist;
-
 /* ==========  Immutables  ========== */
 
   /** @dev Address of MarketCapSqrtController */
