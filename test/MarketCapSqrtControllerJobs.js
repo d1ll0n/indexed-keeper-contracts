@@ -43,39 +43,6 @@ describe('MarketCapSqrtControllerJobs.sol', () => {
     })
   })
 
-  describe('orderCategoryTokensByMarketCap', () => {
-    let timestamp
-
-    setupTests();
-  
-    it('pays at least the gas used for the base function', async () => {
-      const { gasUsed: baseGas } = await controller.orderCategoryTokensByMarketCap(1).then(tx => tx.wait())
-      await fastForward(86400 * 4)
-      const tx = await jobs.orderCategoryTokensByMarketCap(1);
-      const { blockNumber } = await tx.wait();
-      ({ timestamp, } = await ethers.provider.getBlock(blockNumber));
-      expect(await token.balanceOf(owner.address)).to.be.gte(baseGas.sub(21000))
-    })
-
-    it('calls base fn', async () => {
-      expect(await controller.getLastCategoryUpdate(1)).to.eq(timestamp)
-    })
-
-    it('reverts if less than 3.5 days have passed', async () => {
-      await expect(
-        jobs.orderCategoryTokensByMarketCap(1)
-      ).to.be.revertedWith('MarketCapSqrtControllerJobs::orderCategoryTokensByMarketCap: Update not ready')
-    })
-
-    it('protects against reentry', async () => {
-      await fastForward(86400 * 4)
-      await controller.setDoReentry(true)
-      await expect(
-        jobs.orderCategoryTokensByMarketCap(1)
-      ).to.be.revertedWith('ReentrancyGuard: reentrant call')
-    })
-  })
-
   describe('updateCategoryPrices', () => {
     let timestamp
 
@@ -137,27 +104,71 @@ describe('MarketCapSqrtControllerJobs.sol', () => {
   })
 
   describe('reindexPool', () => {
-    let timestamp
+    let timestamp, poolAddress
 
-    setupTests();
-
-    it('pays at least the gas used for the base function', async () => {
-      const { gasUsed: baseGas } = await controller.reindexPool(notOwner.address).then(tx => tx.wait())
-      const tx = await jobs.reindexPool(notOwner.address);
-      ({ timestamp } = await ethers.provider.getBlock((await tx.wait()).blockNumber));
-      expect(await token.balanceOf(owner.address)).to.be.gte(baseGas.sub(21000))
+    before(async () => {
+      poolAddress = await controller.computePoolAddress(1, 10);
     })
 
-    it('calls base fn', async () => {
-      expect(await controller.lastReindex(notOwner.address)).to.eq(timestamp)
+    describe('Category already sorted', async () => {
+
+      setupTests();
+
+      it('pays at least the gas used for the base function', async () => {
+        await controller.orderCategoryTokensByMarketCap(1).then(tx => tx.wait())
+        const { gasUsed: baseGas } = await controller.reindexPool(poolAddress).then(tx => tx.wait())
+        const tx = await jobs.reindexPool(1, 10);
+        ({ timestamp } = await ethers.provider.getBlock((await tx.wait()).blockNumber));
+        expect(await token.balanceOf(owner.address)).to.be.gte(baseGas.sub(21000))
+      })
+  
+      it('calls base fn', async () => {
+        expect(await controller.lastReindex(poolAddress)).to.eq(timestamp)
+      })
+
+      it('does not sort category', async () => {
+        expect(await controller.getLastCategoryUpdate(1)).to.not.eq(timestamp)
+      })
+  
+      it('protects against reentry', async () => {
+        await fastForward(86400 * 4)
+        await controller.setDoReentry(true)
+        await expect(
+          jobs.reindexPool(1, 10)
+        ).to.be.revertedWith('ReentrancyGuard: reentrant call')
+      })
     })
 
-    it('protects against reentry', async () => {
-      await fastForward(86400 * 4)
-      await controller.setDoReentry(true)
-      await expect(
-        jobs.reindexPool(notOwner.address)
-      ).to.be.revertedWith('ReentrancyGuard: reentrant call')
+    describe('Category needs to be sorted', async () => {
+
+      setupTests();
+
+      it('pays at least the gas used for the base function', async () => {
+        await fastForward(86400 * 4)
+        const { gasUsed: baseGasIndex } = await controller.reindexPool(poolAddress).then(tx => tx.wait())
+        const { gasUsed: baseGasSort } = await controller.orderCategoryTokensByMarketCap(1).then(tx => tx.wait())
+        await fastForward(86400 * 4)
+        const baseGas = baseGasIndex.add(baseGasSort);
+        const tx = await jobs.reindexPool(1, 10);
+        ({ timestamp } = await ethers.provider.getBlock((await tx.wait()).blockNumber));
+        expect(await token.balanceOf(owner.address)).to.be.gte(baseGas.sub(21000))
+      })
+  
+      it('calls base fn', async () => {
+        expect(await controller.lastReindex(poolAddress)).to.eq(timestamp)
+      })
+
+      it('sorts category', async () => {
+        expect(await controller.getLastCategoryUpdate(1)).to.eq(timestamp)
+      })
+  
+      it('protects against reentry', async () => {
+        await fastForward(86400 * 4)
+        await controller.setDoReentry(true)
+        await expect(
+          jobs.reindexPool(1, 10)
+        ).to.be.revertedWith('ReentrancyGuard: reentrant call')
+      })
     })
   })
 })
