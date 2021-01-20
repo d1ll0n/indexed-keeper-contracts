@@ -3,10 +3,10 @@ pragma solidity ^0.6.0;
 
 
 interface IMarketCapSqrtControllerJobs {
-  function orderCategoryTokensByMarketCap(uint256 categoryID) external;
+  // function orderCategoryTokensByMarketCap(uint256 categoryID) external;
   function updateCategoryPrices(uint256 categoryID) external;
   function reweighPool(address poolAddress) external;
-  function reindexPool(address poolAddress) external;
+  function reindexPool(uint256 categoryID, uint256 indexSize) external;
 }
 
 
@@ -30,15 +30,12 @@ contract MockMarketCapSqrtController {
 
   function reindexPool(address poolAddress) external {
     if (doReentry) {
-      IMarketCapSqrtControllerJobs(msg.sender).reindexPool(poolAddress);
+      IMarketCapSqrtControllerJobs(msg.sender).reindexPool(0, 0);
     }
     lastReindex[poolAddress] = now;
   }
 
   function orderCategoryTokensByMarketCap(uint256 categoryID) external {
-    if (doReentry) {
-      IMarketCapSqrtControllerJobs(msg.sender).orderCategoryTokensByMarketCap(categoryID);
-    }
     lastSort[categoryID] = now;
   }
 
@@ -51,5 +48,9 @@ contract MockMarketCapSqrtController {
 
   function getLastCategoryUpdate(uint256 categoryID) external view returns (uint256) {
     return lastSort[categoryID];
+  }
+
+  function computePoolAddress(uint256 categoryID, uint256 indexSize) external view returns (address poolAddress) {
+    return address(uint160(uint256(keccak256(abi.encode(categoryID,indexSize)))));
   }
 }
