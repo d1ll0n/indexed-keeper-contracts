@@ -32,12 +32,6 @@ All keeper functions must use both `rewardForGasUsed` and `nonReentrant` to ensu
 
 MarketCapSqrtControllerJobs defines the keeper jobs for the MarketCapSqrtController contract which controls the index pools for Indexed. This defines 4 keeper jobs:
 
-### `orderCategoryTokensByMarketCap`
-
-Calls the pool controller to sort a category's tokens in descending order by market cap.
-
-The pool controller only needs the category to be sorted prior to deploying a new index pool or when a pool is ready to be re-indexed. No minimum delay is enforced on the controller, so the job contract defines a 3.5 day minimum delay.
-
 ### `updateCategoryPrices`
 
 Calls the pool controller to update the prices in the oracle for all the tokens in a particular category.
@@ -51,3 +45,5 @@ Calls the pool controller to reweigh an index pool. Has no additional restrictio
 ### `reindexPool`
 
 Calls the pool controller to reindex an index pool. Has no additional restrictions, as this function will revert in the controller if not needed.
+
+If the pool's category must be sorted, this function will call `orderCategoryTokensByMarketCap` prior to the `reindexPool` call.
