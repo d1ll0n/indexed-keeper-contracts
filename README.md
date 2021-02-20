@@ -36,7 +36,7 @@ MarketCapSqrtControllerJobs defines the keeper jobs for the MarketCapSqrtControl
 
 Calls the pool controller to update the prices in the oracle for all the tokens in a particular category.
 
-The uniswap oracle contract allows this to be called once an hour, but the pool controller only needs the prices updated on a weekly basis in order to handle re-indexing and re-weighing. A 3.5 day minimum delay is enforced on the keeper contract to ensure that prices are never more than half a week old. This is also useful for pools in the same category that are out of sync in their re-indexing.
+The uniswap oracle contract allows this to be called once an hour, but the pool controller only needs the prices updated on a weekly basis in order to handle re-indexing and re-weighing. A 1 day minimum delay is enforced on the keeper contract to ensure that prices are never more than half a week old. This is also useful for pools in the same category that are out of sync in their re-indexing.
 
 ### `reweighPool`
 
